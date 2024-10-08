@@ -14,6 +14,8 @@ function App() {
   const [imageFile, setImageFile] = useState(null);
   // Result image file after detection in base64 string
   const [resultImage, setResultImage] = useState(null);
+  // Flag for loading state
+  const [isDetecting, setIsDetecting] = useState(false);
 
   // When the CAPTURE button is clicked in webcam
   const capture = () => {
@@ -56,6 +58,7 @@ function App() {
   const handleDetect = async () => {
     // Checks if there is a input image file
     if (imageFile) {
+      setIsDetecting(true);
       // Pass this image file (base64 string) to server
       const response = await fetch(
         import.meta.env.VITE_API_URL + "/yolo/detect",
@@ -74,6 +77,8 @@ function App() {
 
       // Display base64 string as an image
       setResultImage(data.result_image);
+
+      setIsDetecting(false);
     }
   };
   return (
@@ -117,8 +122,16 @@ function App() {
       </div>
       <div className="actions-container">
         <div className="actions-wrapper">
-          <button onClick={handleDetect}>DETECT</button>
-          <button onClick={handleReset}>RESET</button>
+          {isDetecting ? (
+            <>
+              <button onClick={null}>DETECTING...</button>
+            </>
+          ) : (
+            <>
+              <button onClick={handleDetect}>DETECT</button>
+              <button onClick={handleReset}>RESET</button>
+            </>
+          )}
         </div>
       </div>
       <div className="prediction-container">

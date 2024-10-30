@@ -12,15 +12,18 @@ import io
 
 # For model
 from ultralytics import YOLO
+import torch
 
 # Load the YOLOv5 model
-model = YOLO("models/yolov5su.pt")  
+# model = YOLO("models/yolov5su.pt")
+model = torch.hub.load("ultralytics/yolov5", "custom", path="models/yolov5s.pt")
 
 """
 @desc     Upload a single dataset
 route     POST api/yolo/detect
 @access   Private
 """
+
 
 class DetectRequest(BaseModel):
     image_uri: str
@@ -40,8 +43,20 @@ async def detect(request: DetectRequest):
     result = model(img)
 
     # Get the numpy array of the annotated image
-    result_nparr = result[0].plot()
-
+    # Using YOLO to load model
+    # result_nparr = result[0].plot()
+    
+    # Using torch to load model
+    result.render() # Render the detections (this updates results.imgs with the annotated images)
+    
+    # Get the annotated image from result.ims (in BGR format)
+    annotated_image = result.ims[0]
+    
+    # Optional: If you want to convert it to RGB (since OpenCV user BGR by default)
+    annotated_image_rgb = cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB)
+    
+    result_nparr = annotated_image_rgb
+    
     # Convert numpy array to base64 string.
     data = Image.fromarray(result_nparr)
     data_bytes = io.BytesIO()
